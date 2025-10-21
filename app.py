@@ -587,21 +587,35 @@ button.primary:hover {
     display: block !important; /* Ensure it takes up the full line */
 }
 
-/* NEW: Ensure sample question text is never truncated */
-#examples_all button,
-#tab-examples button,
-.gradio-container .examples button,
-.gradio-container .examples .example {
-    white-space: normal !important;      /* allow wrapping */
-    overflow: visible !important;         /* no clipping */
-    text-overflow: clip !important;       /* remove ellipsis */
-    height: auto !important;              /* grow with content */
-    max-height: none !important;          /* no cap */
-    width: 100% !important;               /* full width */
-    display: block !important;
-    text-align: left !important;
+/* NEW: Full-length sample question buttons (no truncation) */
+#examples_list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+}
+#tab-examples .example-btn,
+#examples_list .example-btn {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    height: auto !important;
     line-height: 1.4 !important;
-    word-break: break-word !important;    /* wrap long words if any */
+    text-align: left !important;
+    display: block !important;
+}
+#tab-examples .example-btn * {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+}
+
+/* NEW: Make example question font normal weight/size */
+#tab-examples .example-btn,
+#examples_list .example-btn,
+#tab-examples .example-btn * {
+    font-weight: 400 !important;      /* normal (not bold) */
+    font-size: inherit !important;    /* same size as other text */
+    text-transform: none !important;  /* ensure no automatic casing */
 }
 
 footer {
@@ -752,14 +766,16 @@ with gr.Blocks(title="InterPARES chat Q&A", css=css, theme=theme, elem_id="main-
                     gr.Markdown("### Sample Questions")
                     gr.Markdown("*Click on any question to use it*")
                     
-                    # Single examples component with all questions
-                    examples_questions = gr.Examples(
-                        ALL_QUESTIONS,
-                        [examples_hidden],
-                        run_on_click=False,
-                        elem_id="examples_all",
-                        api_name="examples_all",
-                    )
+                    # REPLACED: use full-text buttons instead of gr.Examples to avoid truncation
+                    example_buttons = []
+                    with gr.Column(elem_id="examples_list"):
+                        for q in ALL_QUESTIONS:
+                            example_buttons.append(
+                                gr.Button(q, elem_classes=["example-btn"], variant="secondary")
+                            )
+                    # Wire buttons to set the hidden textbox (triggers existing .change flow)
+                    for btn, q in zip(example_buttons, ALL_QUESTIONS):
+                        btn.click(lambda q=q: q, inputs=None, outputs=examples_hidden)
 
                 #---------------- tab for FILTERS ----------------------
                 with gr.Tab("Filters",elem_id = "tab-config",id = 2):

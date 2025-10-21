@@ -1,0 +1,7 @@
+gradio
+Pillow
+PyMuPDF
+requests
+langchain
+langchain-openai
+python-dotenv
